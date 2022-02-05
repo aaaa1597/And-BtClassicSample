@@ -9,4 +9,5 @@ https://github.com/android/connectivity-samples.git
 2.BTマークのボタンの方を押下 → 接続が確立する。</br>
 3.あとは、文字列入力すると、相互に送受信が確認できる。</br>
 
+### 再作成
 でも、サンプルとしては、分かりにくいので、再作成。
