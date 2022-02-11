@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 		/* Bluetooth未サポート判定 未サポートならエラーpopupで終了 */
 		if (mBluetoothAdapter == null)
 			ErrDialog.create(MainActivity.this, "Bluetooth未サポートの端末です。\nアプリを終了します。").show();
-			/* OFFならONにするようにリクエスト */
+		/* OFFならONにするようにリクエスト */
 		else if( !mBluetoothAdapter.isEnabled()) {
 			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			ActivityResultLauncher<Intent> startForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
