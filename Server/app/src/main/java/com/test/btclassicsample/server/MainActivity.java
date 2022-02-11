@@ -9,10 +9,8 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -67,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 							ErrDialog.create(MainActivity.this, "BluetoothがOFFです。ONにして操作してください。\n終了します。").show();
 						}
 						else {
-							BTServerThreadStart();
+							startBTServerThread();
 						}
 					});
 			startForResult.launch(enableBtIntent);
@@ -76,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 		mConversationArrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.message);
 		((ListView)findViewById(R.id.lvwConversation)).setAdapter(mConversationArrayAdapter);
 
-		BTServerThreadStart();
+		startBTServerThread();
 	}
 
 	@Override
@@ -92,18 +90,18 @@ public class MainActivity extends AppCompatActivity {
 			ErrDialog.create(MainActivity.this, "このアプリには必要な権限です。\n再起動後に許可してください。\n終了します。").show();
 		}
 		else {
-			BTServerThreadStart();
+			startBTServerThread();
 		}
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		BTServerThreadStop();
+		stopBTServerThread();
 	}
 
 	BTServerThread btServerThread;
-	public void BTServerThreadStart() {
+	public void startBTServerThread() {
 		if(btServerThread!=null) return;	/* 起動済なら、起動不要。 */
 
 		/* Bluetooth未サポート */
@@ -128,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
 		btServerThread.start();
 	}
 
-	public void BTServerThreadStop() {
+	public void stopBTServerThread() {
 		if(btServerThread==null) return;	/* 停止済なら、停止不要。 */
 		btServerThread.cancel();
 		btServerThread = null;
