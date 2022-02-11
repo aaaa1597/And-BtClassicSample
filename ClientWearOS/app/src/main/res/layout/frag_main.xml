@@ -12,14 +12,23 @@
         android:layout_height="match_parent">
 
         <TextView
-            android:id="@+id/txtAddress"
+            android:id="@+id/txtStatus"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:text="sample app" />
+            android:layout_margin="20dp"
+            android:text="初期化" />
+
+        <TextView
+            android:id="@+id/txtMassage"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/txtStatus"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:text="aaaaa" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/swhUnLock"
