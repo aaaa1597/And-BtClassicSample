@@ -7,13 +7,13 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/btnConnect"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:text="接続"/>
+        android:text="初期化中"/>
 
     <ListView
         android:id="@+id/lvwConversation"

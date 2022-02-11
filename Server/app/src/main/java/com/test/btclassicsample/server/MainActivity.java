@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +31,6 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 	private final static int		REQUEST_PERMISSIONS = 1111;
 	private BluetoothAdapter		mBluetoothAdapter;
-	BTServerThread					btServerThread;
 	private ArrayAdapter<String>	mConversationArrayAdapter;
 
 	@Override
@@ -66,17 +66,17 @@ public class MainActivity extends AppCompatActivity {
 						if(result.getResultCode() != Activity.RESULT_OK) {
 							ErrDialog.create(MainActivity.this, "BluetoothがOFFです。ONにして操作してください。\n終了します。").show();
 						}
-//						else {
-//							bindUwsService();
-//							bindUwsService();
-//							bindUwsService();
-//						}
+						else {
+							BTServerThreadStart();
+						}
 					});
 			startForResult.launch(enableBtIntent);
 		}
 
 		mConversationArrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.message);
 		((ListView)findViewById(R.id.lvwConversation)).setAdapter(mConversationArrayAdapter);
+
+		BTServerThreadStart();
 	}
 
 	@Override
@@ -91,41 +91,56 @@ public class MainActivity extends AppCompatActivity {
 		if (ngcnt > 0) {
 			ErrDialog.create(MainActivity.this, "このアプリには必要な権限です。\n再起動後に許可してください。\n終了します。").show();
 		}
+		else {
+			BTServerThreadStart();
+		}
 	}
 
 	@Override
-	protected void onResume() {
-		super.onResume();
-		TLog.d("");
+	protected void onDestroy() {
+		super.onDestroy();
+		BTServerThreadStop();
+	}
 
-		if(mBluetoothAdapter == null) {
-			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-			if (mBluetoothAdapter == null) {
-				TLog.d("This device doesn't support Bluetooth.");
-			}
+	BTServerThread btServerThread;
+	public void BTServerThreadStart() {
+		if(btServerThread!=null) return;	/* 起動済なら、起動不要。 */
+
+		/* Bluetooth未サポート */
+		if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+			TLog.d("Bluetooth未サポートの端末.何もしない.");
+			return;
+		}
+
+		/* 権限が許可されていない */
+		if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			TLog.d("Bluetooth権限なし.何もしない.");
+			return;
+		}
+
+		/* Bluetooth OFF */
+		if( !mBluetoothAdapter.isEnabled()) {
+			TLog.d("Bluetooth OFF.何もしない.");
+			return;
 		}
 
 		btServerThread = new BTServerThread();
 		btServerThread.start();
 	}
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		TLog.d("");
-		if(btServerThread != null){
-			btServerThread.cancel();
-			btServerThread = null;
-		}
+	public void BTServerThreadStop() {
+		if(btServerThread==null) return;	/* 停止済なら、停止不要。 */
+		btServerThread.cancel();
+		btServerThread = null;
 	}
 
 	public static final String BT_NAME = "BTTEST1";
 	public static final UUID BT_UUID = UUID.fromString("41eb5f39-6c3a-4067-8bb9-bad64e6e0908");
 	public class BTServerThread extends Thread {
-		BluetoothServerSocket	bluetoothServerSocket;
-		BluetoothSocket			bluetoothSocket;
-		InputStream				inputStream;
-		OutputStream			outputStream;
+		private BluetoothServerSocket	bluetoothServerSocket;
+		private BluetoothSocket			bluetoothSocket;
+		private InputStream				inputStream;
+		private OutputStream			outputStream;
 
 		@Override
 		public void run() {
@@ -144,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
 					bluetoothServerSocket = mBluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(BT_NAME, BT_UUID);
 					TLog.d("Client接続待ち...");
+					runOnUiThread(() -> ((TextView)findViewById(R.id.txtStatus)).setText("Clientアプリ起動待ち..."));
 					bluetoothSocket = bluetoothServerSocket.accept();
 					bluetoothServerSocket.close();
 					bluetoothServerSocket = null;
@@ -152,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
 					outputStream = bluetoothSocket.getOutputStream();
 
 					TLog.d("初期化完了");
+					runOnUiThread(() -> ((TextView)findViewById(R.id.txtStatus)).setText("Client起動検知 -> 初期化完"));
 
 					while(true) {
 						if (Thread.interrupted()) {
@@ -159,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
 						}
 
 						TLog.d("受信待ち...");
+						runOnUiThread(() -> ((TextView)findViewById(R.id.txtStatus)).setText("待ち受け中..."));
 						int incomingBytes = inputStream.read(incomingBuff);
 						byte[] buff = new byte[incomingBytes];
 						System.arraycopy(incomingBuff, 0, buff, 0, incomingBytes);
@@ -173,15 +191,18 @@ public class MainActivity extends AppCompatActivity {
 
 				if (bluetoothSocket != null) {
 					try {
+						runOnUiThread(() -> ((TextView)findViewById(R.id.txtStatus)).setText("何かの要因で接続断..."));
 						bluetoothSocket.close();
 						bluetoothSocket = null;
 					}
 					catch(IOException ignore) {}
 				}
 
+				runOnUiThread(() -> ((TextView)findViewById(R.id.txtStatus)).setText("再接続 3秒待機..."));
 				TLog.d("再接続 3秒待機...");
 				try{ Thread.sleep(3 * 1000); }
 				catch(InterruptedException ignore) {}
+				runOnUiThread(() -> ((TextView)findViewById(R.id.txtStatus)).setText("再接続 実行中"));
 			}
 		}
 
