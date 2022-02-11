@@ -4,6 +4,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.Activity;
@@ -136,6 +137,11 @@ public class MainActivity extends AppCompatActivity {
 				}
 
 				try{
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+						if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
+							throw new RuntimeException("すでに権限付与済のはず");
+					}
+
 					bluetoothServerSocket = mBluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(BT_NAME, BT_UUID);
 					TLog.d("Client接続待ち...");
 					bluetoothSocket = bluetoothServerSocket.accept();

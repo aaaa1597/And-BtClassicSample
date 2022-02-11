@@ -4,6 +4,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.Activity;
@@ -114,10 +115,15 @@ public class MainActivity extends AppCompatActivity {
 		public void run() {
 			byte[] incomingBuff = new byte[64];
 
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
+					throw new RuntimeException("すでに権限付与済のはず");
+			}
+
 			BluetoothDevice bluetoothDevice = null;
 			Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
 			for(BluetoothDevice device : devices){
-				if(device.getName().contains("L201")) {
+				if(device.getName().contains("Pixel 4a")) {
 					bluetoothDevice = device;
 					break;
 				}
@@ -167,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
 							catch(InterruptedException ignore) {}
 						}
 					}
-					catch(IOException e) {}
+					catch(IOException e) { e.printStackTrace(); }
 
 					TLog.d("DisConnected.");
 					runOnUiThread(() -> { ((TextView)findViewById(R.id.txtStatus)).setText(String.format("DisConnected.")); });
