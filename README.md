@@ -11,3 +11,6 @@ https://github.com/android/connectivity-samples.git
 
 ### 再作成
 でも、サンプルとしては、分かりにくいので、再作成。
+
+### WearOS版
+WearOS版は、Galaxy Watch 4で動作確認済
